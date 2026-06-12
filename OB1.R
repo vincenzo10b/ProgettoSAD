@@ -154,6 +154,14 @@ log_model <- glm(target ~ .,
                  data = train_scaled,
                  family = binomial)
 summary(log_model)
+
+dim(train_scaled)
+
+table(train_scaled$target)
+
+summary(train_scaled$target)
+
+str(train_scaled)
 # Probabilità predette
 pred_probs <- predict(log_model,
                       test_scaled,
@@ -186,3 +194,4 @@ accuracy
 precision
 recall
 f1_score
+
