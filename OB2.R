@@ -3,6 +3,7 @@ library(readr)
 library(dplyr)
 library(ggplot2)
 library(corrplot)
+library(caret)
 
 #caricamento dataset reale
 real_data <- read.csv("Migraine_onevsrest_3.csv")
@@ -51,10 +52,8 @@ colnames(synthetic_data)
 
 # Statistiche descrittive nuovo dataset
 summary(synthetic_data)
-# =========================
-# 6. CONFRONTO STATISTICHE DESCRITTIVE
-# =========================
 
+# Confronto statistiche descrittive (reale vs sintetico)
 comparison_stats <- data.frame(
   Variabile = colnames(real_data),
   Media_Reale = sapply(real_data, mean),
@@ -68,10 +67,8 @@ comparison_stats <- data.frame(
 )
 
 comparison_stats
-# =========================
-# 7. CONFRONTO VALORI UNICI
-# =========================
 
+# confronto valori unici
 unique_comparison <- data.frame(
   Variabile = colnames(real_data),
   Valori_Unici_Reale = sapply(real_data, function(x) length(unique(x))),
@@ -79,10 +76,8 @@ unique_comparison <- data.frame(
 )
 
 unique_comparison
-# =========================
-# 8. CONFRONTO DISTRIBUZIONE AGE
-# =========================
 
+# confronto distribuzione age
 real_age <- real_data %>%
   select(Age) %>%
   mutate(type = "Reale")
@@ -112,10 +107,8 @@ corrplot(cor_matrix,
          type = "upper",
          tl.cex = 0.7,
          number.cex = 0.5)
-# =========================
-# DISTRIBUZIONE NORMALE - AGE
-# =========================
 
+# distribuzione normale variabile age
 ggplot(real_data, aes(x = Age)) +
   geom_histogram(aes(y = ..density..),
                  bins = 15,
@@ -132,10 +125,21 @@ ggplot(real_data, aes(x = Age)) +
     y = "Densità"
   ) +
   theme_minimal()
-# =========================
-# DISTRIBUZIONE POISSON - FREQUENCY
-# =========================
 
+# Q-Q Plot variabile age
+qqnorm(real_data$Age,
+       main = "Q-Q Plot Age")
+
+qqline(real_data$Age,
+       col = "red",
+       lwd = 2)
+
+# Test di Shapiro-Wilk
+shapiro_test_age <- shapiro.test(real_data$Age)
+
+shapiro_test_age
+
+# distribuzione poisson variabile frequency
 lambda <- mean(real_data$Frequency)
 
 ggplot(real_data,
@@ -152,19 +156,13 @@ ggplot(real_data,
     y = "Frequenza"
   ) +
   theme_minimal()
-# =========================
-# DISTRIBUZIONE BERNOULLI - NAUSEA
-# =========================
 
+# distribuzione bernoulli nausea
 table(real_data$Nausea)
 
 prop.table(table(real_data$Nausea))
-# =========================
-# 11. REGRESSIONE LOGISTICA
-# SU DATASET SINTETICO
-# =========================
 
-library(caret)
+# Regressione logistica su dataset sintetico
 
 # Conversione target in factor
 synthetic_data$target <- as.factor(synthetic_data$target)
@@ -204,10 +202,7 @@ train_scaled <- cbind(train_x_scaled,
 test_scaled <- cbind(test_x_scaled,
                      target = test_y)
 
-# =========================
-# MODELLO LOGISTICO
-# =========================
-
+# modello logistico
 log_model <- glm(
   target ~ .,
   data = train_scaled,
@@ -216,10 +211,7 @@ log_model <- glm(
 
 summary(log_model)
 
-# =========================
-# PREDIZIONI
-# =========================
-
+# predizioni
 pred_probs <- predict(
   log_model,
   test_scaled,
@@ -232,10 +224,7 @@ pred_class <- ifelse(pred_probs > 0.5,
 
 pred_class <- as.factor(pred_class)
 
-# =========================
-# CONFUSION MATRIX
-# =========================
-
+# confusion matrix
 conf_matrix <- confusionMatrix(
   pred_class,
   test_scaled$target,
@@ -243,10 +232,8 @@ conf_matrix <- confusionMatrix(
 )
 
 conf_matrix
-# =========================
-# METRICHE
-# =========================
 
+# metriche
 accuracy <- conf_matrix$overall["Accuracy"]
 
 precision <- conf_matrix$byClass["Pos Pred Value"]
@@ -262,3 +249,4 @@ accuracy
 precision
 recall
 f1_score
+
