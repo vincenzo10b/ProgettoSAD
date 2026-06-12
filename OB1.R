@@ -41,10 +41,11 @@ ggplot(dataset, aes(x = as.factor(target))) +
     y = "Frequenza"
   ) +
   theme_minimal()
+
 # Matrice di correlazione
 cor_matrix <- cor(dataset)
 
-# Visualizzazione grafica heatmap (matrice di correlazione)
+# Visualizzazione grafica matrice di correlazione
 corrplot(cor_matrix,
          method = "color",
          type = "upper",
@@ -58,7 +59,7 @@ dataset <- dataset %>%
 # Nuova matrice di correlazione senza la feature Ataxia
 cor_matrix <- cor(dataset)
 
-# Nuova heatmap (matrice di correlazione)
+#Visualizzazione grafica nuova matrice di correlazione
 corrplot(cor_matrix,
          method = "color",
          type = "upper",
